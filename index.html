@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>免費 AI 遊戲設計工具技術文件</title>
+  <style>
+    :root {
+      --bg: #f7fafc;
+      --paper: #ffffff;
+      --ink: #1f2937;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-soft: #dbeafe;
+      --accent: #10b981;
+      --accent-soft: #d1fae5;
+      --warning: #f59e0b;
+      --warning-soft: #fef3c7;
+      --border: #e5e7eb;
+      --code-bg: #0f172a;
+      --code-ink: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.75;
+    }
+
+    header {
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: 0.04em;
+    }
+
+    header p {
+      margin: 0 auto;
+      max-width: 900px;
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    nav {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    nav .nav-inner {
+      max-width: 1100px;
+      margin: auto;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    nav a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      font-size: 0.92rem;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 20px 48px;
+    }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #0f172a;
+      border-left: 8px solid var(--primary);
+      padding-left: 12px;
+      font-size: 1.7rem;
+    }
+
+    h3 {
+      color: #1e40af;
+      margin-top: 26px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin: 4px 6px 4px 0;
+    }
+
+    .badge-free {
+      background: var(--accent-soft);
+      color: #047857;
+    }
+
+    .badge-ai {
+      background: var(--primary-soft);
+      color: #1d4ed8;
+    }
+
+    .badge-teacher {
+      background: var(--warning-soft);
+      color: #b45309;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      background: #fcfcfd;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+
+    .card p {
+      margin: 8px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: #eff6ff;
+      color: #1e3a8a;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .note {
+      border-left: 6px solid var(--accent);
+      background: #ecfdf5;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    .warning {
+      border-left: 6px solid var(--warning);
+      background: #fffbeb;
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin: 16px 0;
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-ink);
+      padding: 18px;
+      border-radius: 16px;
+      overflow-x: auto;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: "Consolas", "Courier New", monospace;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      counter-reset: step;
+      margin-top: 16px;
+    }
+
+    .step {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      position: relative;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px 20px;
+      border-top: 1px solid var(--border);
+      background: white;
+    }
+
+    @media print {
+      nav {
+        display: none;
+      }
+
+      body {
+        background: white;
+      }
+
+      section {
+        break-inside: avoid;
+        box-shadow: none;
+      }
+
+      header {
+        background: white;
+        color: black;
+        border-bottom: 2px solid #333;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>免費 AI 遊戲設計工具技術文件</h1>
+    <p>適用對象：國小自然科教師、資訊社團教師、想用 AI 快速製作教學小遊戲的教育工作者。</p>
+  </header>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="#overview">文件目的</a>
+      <a href="#tools">工具比較</a>
+      <a href="#workflow">建議流程</a>
+      <a href="#prompts">Prompt 範例</a>
+      <a href="#deploy">部署建議</a>
+      <a href="#lesson">教學應用</a>
+      <a href="#checklist">檢核表</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2>一、文件目的</h2>
+      <p>
+        本文件整理目前適合用於「免費或有免費額度」的 AI 遊戲設計工具，並提供教師在自然科、科展、創客課程、資訊社團中使用的建議流程。
+        目標不是一次做出大型商業遊戲，而是快速完成可以上課、展示、部署到網頁的小型互動遊戲。
+      </p>
+
+      <div class="note">
+        <strong>核心建議：</strong>老師可使用 ChatGPT、Gemini、Claude 產生 HTML / CSS / JavaScript 小遊戲，再透過 Replit 或 GitHub Pages 測試與部署；學生可先從 Scratch、CreatiCode、GDevelop 入門。
+      </div>
+    </section>
+
+    <section id="tools">
+      <h2>二、免費 AI 遊戲設計工具比較</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>工具名稱</th>
+            <th>免費狀況</th>
+            <th>主要特色</th>
+            <th>適合對象</th>
+            <th>建議用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Scratch</td>
+            <td>免費</td>
+            <td>積木式程式設計，適合初學者。</td>
+            <td>國小三至六年級學生</td>
+            <td>迷宮遊戲、接物遊戲、問答遊戲、互動動畫。</td>
+          </tr>
+          <tr>
+            <td>CreatiCode</td>
+            <td>有免費功能</td>
+            <td>類似 Scratch，加入 AI 與 3D 功能。</td>
+            <td>高年級學生、社團學生</td>
+            <td>AI 互動、3D 教學模擬、創意程式作品。</td>
+          </tr>
+          <tr>
+            <td>GDevelop</td>
+            <td>免費、開源，有部分雲端限制</td>
+            <td>免寫程式的遊戲引擎，可做完整 2D 遊戲。</td>
+            <td>教師、進階學生</td>
+            <td>平台跳躍、闖關、迷宮、射擊、任務型遊戲。</td>
+          </tr>
+          <tr>
+            <td>ChatGPT / Gemini / Claude</td>
+            <td>有免費版或免費額度</td>
+            <td>可協助設計遊戲規則、產生程式碼、修正 Bug。</td>
+            <td>教師、進階學生</td>
+            <td>產生 HTML5 小遊戲、設計題庫、撰寫部署說明。</td>
+          </tr>
+          <tr>
+            <td>Google AI Studio / Gemini Canvas</td>
+            <td>通常有免費額度</td>
+            <td>可將文字描述轉成互動網頁、遊戲雛形或 App 原型。</td>
+            <td>教師</td>
+            <td>快速製作互動教材、自然科小遊戲原型。</td>
+          </tr>
+          <tr>
+            <td>Replit</td>
+            <td>有免費方案 / 免費額度</td>
+            <td>瀏覽器即可寫程式、測試與分享作品。</td>
+            <td>教師、學生社團</td>
+            <td>測試 HTML / JavaScript 遊戲、保存專案、分享連結。</td>
+          </tr>
+          <tr>
+            <td>Rosebud AI</td>
+            <td>可免費試用 / 免費創作限制依平台而定</td>
+            <td>用文字生成可玩的 2D / 3D 遊戲原型。</td>
+            <td>教師、創意發想者</td>
+            <td>快速把教學遊戲想法變成可玩的雛形。</td>
+          </tr>
+          <tr>
+            <td>Construct 3</td>
+            <td>有免費版限制</td>
+            <td>拖拉式 2D 遊戲製作工具。</td>
+            <td>教師、學生社團</td>
+            <td>接物、闖關、平台跳躍、物理小遊戲。</td>
+          </tr>
+          <tr>
+            <td>Godot Engine</td>
+            <td>完全免費、開源</td>
+            <td>專業 2D / 3D 遊戲引擎。</td>
+            <td>進階學生、教師專案</td>
+            <td>完整遊戲專案、進階互動模擬。</td>
+          </tr>
+          <tr>
+            <td>Roblox Studio</td>
+            <td>免費</td>
+            <td>可製作 3D 世界與多人互動遊戲。</td>
+            <td>高年級學生、社團</td>
+            <td>3D 闖關、科學探索場景、校園虛擬世界。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="warning">
+        <strong>提醒：</strong>「免費」通常代表有使用次數、專案數、匯出功能或雲端部署限制。正式教學使用前，建議先測試帳號、匯出方式與學生登入需求。
+      </div>
+    </section>
+
+    <section id="workflow">
+      <h2>三、教師製作 AI 教學遊戲的建議流程</h2>
+
+      <div class="flow">
+        <div class="step">
+          <strong>設定教學主題</strong>
+          <p>先確定遊戲要對應的自然科概念，例如磁力、電路、昆蟲旅館、食蟲植物、風力發電。</p>
+        </div>
+        <div class="step">
+          <strong>設計遊戲規則</strong>
+          <p>決定玩家目標、操作方式、得分方式、失敗條件與過關條件。</p>
+        </div>
+        <div class="step">
+          <strong>用 AI 產生原型</strong>
+          <p>請 AI 產生單一 HTML 檔，包含 HTML、CSS、JavaScript，方便測試與部署。</p>
+        </div>
+        <div class="step">
+          <strong>本機或 Replit 測試</strong>
+          <p>打開 index.html 測試遊戲是否可玩，檢查按鍵、碰撞、分數、題目與畫面。</p>
+        </div>
+        <div class="step">
+          <strong>修改與美化</strong>
+          <p>加入可愛角色、音效、關卡、題庫、提示語、重新開始按鈕。</p>
+        </div>
+        <div class="step">
+          <strong>部署與分享</strong>
+          <p>可部署到 GitHub Pages、Gitee Pages、Replit 或學校網站。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="prompts">
+      <h2>四、可直接使用的 Prompt 範例</h2>
+
+      <h3>Prompt 1：產生 HTML5 小遊戲</h3>
+      <pre><code>請幫我設計一款國小自然科教學用 HTML5 小遊戲。
+
+遊戲名稱：昆蟲旅館大冒險
+對象：國小五、六年級
+主題：獨居蜂、巢管選擇、校園生態
+
+玩法：
+1. 玩家控制一隻可愛的獨居蜂。
+2. 要選擇合適的巢管入住。
+3. 不同巢管有不同管徑、深度、材質。
+4. 選對會加分，選錯會出現提示。
+5. 每一關加入一題自然科選擇題。
+6. 請用 HTML、CSS、JavaScript 寫成單一 index.html 檔案。
+7. 畫面要可愛，適合國小學生，並可部署到 GitHub Pages。</code></pre>
+
+      <h3>Prompt 2：請 AI 修正遊戲 Bug</h3>
+      <pre><code>以下是我的 HTML 遊戲程式碼。
+請幫我檢查：
+1. 為什麼角色無法移動？
+2. 為什麼碰撞判定不準？
+3. 為什麼分數沒有增加？
+4. 請直接輸出修正版完整 index.html。</code></pre>
+
+      <h3>Prompt 3：加入自然科題庫</h3>
+      <pre><code>請幫我在這個遊戲中加入 10 題國小自然科選擇題。
+主題：磁力與生活中的力。
+每題四個選項，答對加 10 分，答錯顯示提示。
+題目口吻要適合國小四年級學生。</code></pre>
+
+      <h3>Prompt 4：改成 GitHub Pages 可部署版本</h3>
+      <pre><code>請將這個遊戲整理成 GitHub Pages 可部署版本。
+請提供：
+1. index.html
+2. README.md
+3. 部署步驟
+4. 如何修改遊戲標題、題目與圖片的說明。</code></pre>
+    </section>
+
+    <section id="deploy">
+      <h2>五、部署建議</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>部署方式</th>
+            <th>優點</th>
+            <th>限制</th>
+            <th>適合情境</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GitHub Pages</td>
+            <td>免費、穩定、適合展示作品。</td>
+            <td>需要基本 GitHub 操作。</td>
+            <td>老師作品集、學生專題、教學遊戲網站。</td>
+          </tr>
+          <tr>
+            <td>Gitee Pages</td>
+            <td>適合某些網路環境，操作類似 Git 平台。</td>
+            <td>功能與審核限制可能變動。</td>
+            <td>備用部署平台。</td>
+          </tr>
+          <tr>
+            <td>Replit</td>
+            <td>瀏覽器即可測試與分享。</td>
+            <td>免費方案資源有限。</td>
+            <td>快速測試、課堂展示、學生練習。</td>
+          </tr>
+          <tr>
+            <td>本機開啟 index.html</td>
+            <td>最簡單，不需上網部署。</td>
+            <td>不方便分享給全班。</td>
+            <td>教師備課、初步測試。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>GitHub Pages 基本流程</h3>
+      <ol>
+        <li>建立新的 GitHub Repository。</li>
+        <li>上傳 <code>index.html</code>。</li>
+        <li>進入 Settings → Pages。</li>
+        <li>選擇 Branch：<code>main</code>，Folder：<code>/root</code>。</li>
+        <li>儲存後等待產生網址。</li>
+      </ol>
+    </section>
+
+    <section id="lesson">
+      <h2>六、自然科教學遊戲主題範例</h2>
+
+      <div class="grid">
+        <div class="card">
+          <h3>磁力迷宮</h3>
+          <p>玩家控制磁鐵，吸引或排斥物品，避開障礙物到達終點。</p>
+          <span class="badge badge-free">適合四年級</span>
+          <span class="badge badge-ai">HTML 小遊戲</span>
+        </div>
+        <div class="card">
+          <h3>電路接線挑戰</h3>
+          <p>學生拖拉電池、燈泡、導線，完成正確電路後燈泡會發亮。</p>
+          <span class="badge badge-teacher">適合課堂示範</span>
+        </div>
+        <div class="card">
+          <h3>食蟲植物捕蟲大作戰</h3>
+          <p>玩家操作昆蟲移動，觀察捕蟲葉、瓶狀葉、黏液陷阱的特性。</p>
+          <span class="badge badge-free">適合生態課程</span>
+        </div>
+        <div class="card">
+          <h3>昆蟲旅館選房子</h3>
+          <p>獨居蜂要依照巢管管徑、深度、材質與環境條件選擇合適巢位。</p>
+          <span class="badge badge-ai">適合科展延伸</span>
+        </div>
+        <div class="card">
+          <h3>風力發電扇葉挑戰</h3>
+          <p>學生調整扇葉數量、角度與材質，觀察發電效率變化。</p>
+          <span class="badge badge-teacher">適合探究實作</span>
+        </div>
+        <div class="card">
+          <h3>生態系食物鏈配對</h3>
+          <p>將生產者、消費者、分解者放入正確位置，完成食物網。</p>
+          <span class="badge badge-free">適合中年級</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="checklist">
+      <h2>七、教學遊戲完成前檢核表</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>檢核項目</th>
+            <th>完成狀態</th>
+            <th>備註</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>遊戲主題是否對應自然科課程目標？</td>
+            <td>□ 已完成　□ 待修改</td>
+            <td>建議對應單元、學習內容或探究能力。</td>
+          </tr>
+          <tr>
+            <td>學生是否能在 3 分鐘內理解玩法？</td>
+            <td>□ 已完成　□ 待修改</td>
+            <td>國小遊戲規則不宜過度複雜。</td>
+          </tr>
+          <tr>
+            <td>是否有分數、回饋或過關機制？</td>
+            <td>□ 已完成　□ 待修改</td>
+            <td>加入立即回饋可提升學習動機。</td>
+          </tr>
+          <tr>
+            <td>是否有重新開始按鈕？</td>
+            <td>□ 已完成　□ 待修改</td>
+            <td>方便學生反覆練習。</td>
+          </tr>
+          <tr>
+            <td>是否可在教室電腦、平板或投影機正常顯示？</td>
+            <td>□ 已完成　□ 待修改</td>
+            <td>建議事先測試解析度與操作方式。</td>
+          </tr>
+          <tr>
+            <td>是否已備份原始檔案？</td>
+            <td>□ 已完成　□ 待修改</td>
+            <td>建議保留 index.html 與 README.md。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>八、推薦使用路線</h2>
+
+      <h3>路線 A：老師快速備課</h3>
+      <p>
+        ChatGPT / Gemini / Claude → 產生 HTML 小遊戲 → Replit 測試 → GitHub Pages 發布 → 課堂使用。
+      </p>
+
+      <h3>路線 B：學生資訊社團</h3>
+      <p>
+        Scratch 入門 → CreatiCode 加入 AI 或 3D → GDevelop 製作正式闖關遊戲 → 成果發表。
+      </p>
+
+      <h3>路線 C：科展或專題延伸</h3>
+      <p>
+        先用 AI 設計互動模擬 → 加入實驗變因與數據 → 讓學生透過遊戲理解研究假設、變因控制與結果判讀。
+      </p>
+
+      <div class="note">
+        <strong>最推薦入門組合：</strong>ChatGPT 或 Gemini + 單一 index.html + Replit / GitHub Pages。這種方式最容易保存、修改、分享，也最適合教師快速製作教材。
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>免費 AI 遊戲設計工具技術文件｜可作為教師備課、資訊社團、科展前導活動與互動教材開發參考。</p>
+  </footer>
+</body>
+</html>
